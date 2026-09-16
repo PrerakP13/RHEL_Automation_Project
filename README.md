@@ -97,7 +97,12 @@ Subnet:
 
 The host-only network allows the virtual machines to communicate with each other and the Windows host without requiring the servers to be directly exposed to the external network.
 
-<!-- ADD SCREENSHOT: VirtualBox VM/network configuration -->
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d98684e3-1c7a-4ec3-a22c-68f06a12e954" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ef77d8d6-9e55-4724-af25-a0b2916930ee" />
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c00491b2-777d-4e8a-b055-311a981d52e3" />
+
 
 ---
 
@@ -196,7 +201,8 @@ server2 | SUCCESS
 
 This confirmed that Ansible could communicate with both managed nodes.
 
-<!-- ADD SCREENSHOT: Ansible ping showing both servers -->
+<img width="578" height="308" alt="image" src="https://github.com/user-attachments/assets/6921076a-d037-43f6-84f4-477aa90e59af" />
+
 
 ---
 
@@ -348,7 +354,11 @@ pubkeyauthentication yes
 
 This demonstrated the importance of checking the **effective configuration** rather than assuming that modifying the main configuration file is sufficient.
 
-<!-- ADD SCREENSHOT: SSH effective configuration -->
+<img width="803" height="692" alt="Screenshot 2026-09-13 232411" src="https://github.com/user-attachments/assets/2c3249a2-d109-4427-842f-f6f58797ce2b" />
+
+<img width="795" height="622" alt="Screenshot 2026-09-13 232433" src="https://github.com/user-attachments/assets/6357a396-6ead-43c9-b754-9bf1ea6a105d" />
+
+<img width="809" height="655" alt="Screenshot 2026-09-13 232455" src="https://github.com/user-attachments/assets/270a0a24-39f5-4c4e-a732-30ae0a4c3d2d" />
 
 ---
 
@@ -404,7 +414,15 @@ applies the rule to the current runtime configuration.
 
 Using only `permanent: true` does not necessarily make the rule immediately active in the current runtime configuration.
 
-<!-- ADD SCREENSHOT: firewall-cmd output -->
+<img width="804" height="613" alt="Screenshot 2026-09-14 181228" src="https://github.com/user-attachments/assets/ce711dac-bcd6-4f1a-b6fb-110cc8a25f60" />
+
+<img width="799" height="119" alt="Screenshot 2026-09-14 181307" src="https://github.com/user-attachments/assets/98f0d762-3a64-4163-b374-b8ef58baae88" />
+
+<img width="784" height="567" alt="Screenshot 2026-09-14 181341" src="https://github.com/user-attachments/assets/638411e4-40cb-4aff-b481-88e8ccba21bc" />
+
+<img width="913" height="820" alt="Screenshot 2026-09-14 181521" src="https://github.com/user-attachments/assets/27ab601d-30c6-4e1a-a72f-a6c43ae81a7a" />
+
+<img width="769" height="500" alt="Screenshot 2026-09-14 181538" src="https://github.com/user-attachments/assets/efcff5ba-6d2c-4c71-99c2-d276f375d5ec" />
 
 ---
 
@@ -499,6 +517,10 @@ Apache could then start normally.
 
 This demonstrated practical troubleshooting of a service startup failure caused by a port conflict.
 
+<img width="1381" height="930" alt="Screenshot 2026-09-14 190951" src="https://github.com/user-attachments/assets/fee632a9-dfe1-4317-8c82-2cbcc1bcbcfa" />
+
+<img width="966" height="210" alt="Screenshot 2026-09-14 191255" src="https://github.com/user-attachments/assets/adcd2178-df7b-42a6-9cbb-810217c83731" />
+
 ---
 
 # 10. Custom Web Page
@@ -550,8 +572,10 @@ server1/server2
    │
 index.html
 ```
+<img width="575" height="328" alt="Screenshot 2026-09-14 191835" src="https://github.com/user-attachments/assets/1d6aa85d-5cfa-496a-9c1d-3f7d9b01346d" />
 
-<!-- ADD SCREENSHOT: curl 200 OK response -->
+
+<img width="751" height="850" alt="Screenshot 2026-09-14 192838" src="https://github.com/user-attachments/assets/8f00eaa1-3b27-4894-a638-987bc85cab91" />
 
 ---
 
@@ -1189,19 +1213,27 @@ or the successful HTTP response.
 
 ### Custom Webpage
 
-<!-- ADD SCREENSHOT -->
+<img width="751" height="850" alt="Screenshot 2026-09-14 192838" src="https://github.com/user-attachments/assets/1fadd59a-c8be-45ce-82b8-eb2168d35652" />
+
 
 Show the custom webpage being served.
 
 ### Bash Health Report
 
-<!-- ADD SCREENSHOT -->
+<img width="957" height="528" alt="Screenshot 2026-09-14 203716" src="https://github.com/user-attachments/assets/8ca17f69-0799-454c-9725-a5eba0959227" />
+
+
+<img width="1418" height="900" alt="Screenshot 2026-09-14 202925" src="https://github.com/user-attachments/assets/807c92a4-52d3-4a3e-b240-1904f2b4e11f" />
+
+<img width="1418" height="943" alt="Screenshot 2026-09-14 202945" src="https://github.com/user-attachments/assets/b5a76ea5-d533-4b40-917c-4d88e0b6e2bd" />
 
 Show the system health output for both servers.
 
 ### Podman
 
-<!-- ADD SCREENSHOT -->
+<img width="940" height="844" alt="Screenshot 2026-09-15 203926" src="https://github.com/user-attachments/assets/bb3f364d-6365-45c8-b175-c12b869f8775" />
+
+<img width="805" height="390" alt="Screenshot 2026-09-15 203940" src="https://github.com/user-attachments/assets/4b510292-c7df-4712-ab71-36ac855675ec" />
 
 Show:
 
