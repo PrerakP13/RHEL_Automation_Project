@@ -1,0 +1,12 @@
+---
+- name: Creating User(s)
+  hosts: servers
+  become: true
+ 
+  tasks:
+   - name: Create John
+     ansible.builtin.user:
+        name: John
+        group: wheel
+        append: true
+        state: present

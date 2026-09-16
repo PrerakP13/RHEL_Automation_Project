@@ -1,0 +1,32 @@
+---
+- name: Configuring Firewall on servers
+  hosts: servers
+  become: true
+
+  tasks:
+   - name: Install Firewall
+     ansible.builtin.dnf:
+       name: firewalld
+       state: present
+
+   - name: Enable Firewall
+     ansible.builtin.systemd_service:
+       name: firewalld
+       state: started
+       enabled: true
+
+   - name: Enabling SSH in both servers
+     ansible.posix.firewalld:
+       state: enabled
+       service: ssh
+       permanent: true
+       zone: public
+       immediate: true
+
+   - name: Enabling HTTP in both servers       
+     ansible.posix.firewalld:
+       state: enabled
+       service: http       
+       permanent: true
+       zone: public
+       immediate: true

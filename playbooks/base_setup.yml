@@ -1,0 +1,22 @@
+---
+- name: Base configuration for Linux Servers
+  hosts: servers
+  become: true
+
+  tasks:
+ 
+   - name: INstall useful system packages
+     ansible.builtin.dnf:
+       name:
+         - vim
+         - git
+         - curl
+         - wget
+         - net-tools
+       state: present
+
+   - name: Ensure chronyd is running
+     ansible.builtin.systemd:
+        name: chronyd
+        state: started
+        enabled: true

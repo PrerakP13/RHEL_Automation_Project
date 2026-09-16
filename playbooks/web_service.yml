@@ -1,0 +1,31 @@
+---
+- name: Deploying Web Service
+  hosts: servers
+  become: true
+
+  tasks:
+   - name: Removing Port 80 conflicts
+     ansible.builtin.dnf:
+       name: nginx
+       state: absent
+       autoremove: true
+
+   - name: Installing HTTPD
+     ansible.builtin.dnf:
+       name: httpd
+       state: present
+
+   - name: Enabling HTTPD on both servers
+     ansible.builtin.systemd_service:
+       name: httpd
+       state: started
+       enabled: true
+
+   - name: Creating index.html to serve
+     ansible.builtin.copy:
+       content: |
+         <html>
+         <h1>This is the landing place for Prerak's friends</h1>
+         <p>Welcome to my hub</p>
+         </html>
+       dest: /var/www/html/index.html
