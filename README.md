@@ -424,6 +424,58 @@ Using only `permanent: true` does not necessarily make the rule immediately acti
 
 <img width="769" height="500" alt="Screenshot 2026-09-14 181538" src="https://github.com/user-attachments/assets/efcff5ba-6d2c-4c71-99c2-d276f375d5ec" />
 
+## 🔐 Node Isolation & Management
+
+As part of the infrastructure hardening process, additional access controls were applied to the managed nodes to reduce unnecessary exposed services and standardize node configuration.
+
+### Access Management
+
+The firewall configuration was updated across the managed Rocky Linux servers to:
+
+* Keep SSH available for Ansible-based remote administration
+* Allow HTTP traffic on port 80
+* Allow TCP port 8080 for the Podman-hosted Apache service
+* Remove Cockpit from the enabled firewall services
+* Apply changes both immediately and permanently
+
+The resulting firewall configuration was verified with:
+
+```bash
+sudo firewall-cmd --list-all
+```
+
+Example:
+
+```text
+services: dhcpv6-client http ssh
+ports: 8080/tcp
+```
+
+### Centralized Configuration
+
+Firewall changes were applied through Ansible rather than manually configuring each node. This allows the same access configuration to be consistently deployed across the managed infrastructure.
+
+```yaml
+- name: Disabling cockpit
+  ansible.posix.firewalld:
+    state: disabled
+    service: cockpit
+    immediate: true
+    permanent: true
+
+- name: Allow port 8080 TCP for Podman
+  ansible.posix.firewalld:
+    state: enabled
+    port: 8080/tcp
+    permanent: true
+    immediate: true
+```
+
+This provides a foundation for further node isolation and network access policies as the infrastructure grows.
+
+<img width="929" height="619" alt="Screenshot 2026-09-17 122749" src="https://github.com/user-attachments/assets/e7253d77-770f-49e7-af7b-6406d3aa9ae6" />
+
+
 ---
 
 # 8. Service Management
@@ -918,7 +970,115 @@ This behavior is one of the main advantages of configuration management compared
 
 ---
 
-# 18. Troubleshooting Experience
+# 18 🎭 Ansible Roles
+
+The base system configuration was refactored from a standalone playbook into a reusable Ansible Role. This separates the configuration logic from the playbook and provides a more maintainable structure for expanding the automation.
+
+### Role Structure
+
+The `base_setup` role was created using `ansible-galaxy init`:
+
+```bash
+ansible-galaxy init roles/base_setup
+```
+
+The resulting structure is:
+
+```text
+roles/
+└── base_setup/
+    ├── defaults/
+    ├── handlers/
+    ├── meta/
+    ├── tasks/
+    │   └── main.yml
+    ├── tests/
+    └── vars/
+```
+
+**📸 Screenshot — Role Structure**
+
+> Add screenshot here showing the `roles/base_setup` directory and `tasks/main.yml`.
+
+### Base Setup Role
+
+The role automates the initial configuration of the managed Rocky Linux servers.
+
+The `tasks/main.yml` file handles:
+
+* Installation of required packages:
+
+  * Vim
+  * Git
+  * cURL
+  * Wget
+  * net-tools
+* Starting and enabling `chronyd`
+
+Example:
+
+```yaml
+- name: Installing required packages
+  ansible.builtin.dnf:
+    name: [vim, git, curl, wget, net-tools]
+    state: present
+
+- name: Start and Enable chronyd
+  ansible.builtin.systemd_service:
+    name: chronyd
+    state: started
+    enabled: true
+```
+
+### Using the Role
+
+The role is called from a dedicated playbook rather than directly including its task file:
+
+```yaml
+- name: Basic Role Setup
+  hosts: servers
+  become: true
+
+  roles:
+    - base_setup
+```
+
+Ansible automatically loads the role's `tasks/main.yml` when `base_setup` is specified under `roles`.
+
+### Idempotency
+
+The role was executed multiple times to verify idempotent behavior.
+
+During the initial execution, the required packages were installed and Ansible reported changes.
+
+A subsequent execution produced:
+
+```text
+server1 : ok=3 changed=0 unreachable=0 failed=0
+server2 : ok=3 changed=0 unreachable=0 failed=0
+```
+
+This confirms that once the servers reached the desired state, running the role again did not make unnecessary changes.
+
+<img width="957" height="386" alt="Screenshot 2026-09-17 123005" src="https://github.com/user-attachments/assets/f9455356-bf42-4fa4-b354-5f0852c8907b" />
+
+
+> Add screenshot here showing the successful second execution with `changed=0` and `failed=0`.
+
+### Verification
+
+The role was validated using:
+
+```bash
+ansible-playbook --syntax-check playbooks/base_role.yml
+```
+
+The playbook then executed successfully against both managed nodes.
+
+This demonstrates the use of reusable roles, privilege escalation, package management, systemd service management, and idempotent configuration management.
+
+
+# 19. Troubleshooting Experience
 
 Several real configuration and infrastructure issues were encountered during development.
 
@@ -1029,9 +1189,97 @@ GitHub's SSH endpoint over port 443 was configured.
 
 This allowed Git operations to use SSH authentication without relying on port 22.
 
+### Ansible Role Not Found
+
+**Problem:**
+After creating the `base_setup` role, Ansible could not find it when running the role-based playbook:
+
+```text
+ERROR! the role 'base_setup' was not found
+```
+
+The role existed under the project's `roles/` directory, but that directory was not included in Ansible's role search path.
+
+**Solution:**
+Updated `ansible.cfg` to explicitly define the project role path:
+
+```ini
+[defaults]
+inventory = inventory
+roles_path = ./roles
+```
+
+The playbook was then able to locate and execute the `base_setup` role successfully.
+
 ---
 
-# 19. Verification Strategy
+### Firewall Configuration Interrupted Ansible Connectivity
+
+**Problem:**
+While experimenting with more restrictive SSH firewall rules, the managed nodes became unreachable from the Ansible control node because SSH access was no longer permitted.
+
+**Solution:**
+Access to the VM consoles was used to restore the SSH firewall service:
+
+```bash
+sudo firewall-cmd --zone=public --add-service=ssh
+```
+
+Ansible connectivity was then restored.
+
+The final firewall configuration was kept focused on the services required by the project:
+
+* SSH for remote administration
+* HTTP for Apache
+* TCP port 8080 for the Podman service
+* Cockpit removed
+
+**Lesson:**
+Firewall changes can directly affect the remote management channel. Changes to access-control rules should be tested carefully, with console access available for recovery.
+
+---
+
+### Quadlet Service Not Appearing in Systemd
+
+**Problem:**
+After creating `/etc/containers/systemd/apache.container`, the expected systemd service was not immediately visible. The Quadlet configuration existed, but systemd had not yet regenerated its unit configuration.
+
+**Solution:**
+Reloaded the systemd configuration:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+The generated service then appeared as:
+
+```text
+apache.service
+```
+
+The service was verified with:
+
+```bash
+systemctl status apache.service
+```
+
+The Ansible playbook was also configured to automatically reload systemd when deploying the Quadlet configuration:
+
+```yaml
+- name: Reload systemd and start Apache container
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    name: apache.service
+    enabled: true
+    state: started
+```
+
+The container was subsequently verified to start automatically after reboot.
+
+
+---
+
+# 20. Verification Strategy
 
 The infrastructure was verified at multiple levels rather than relying solely on Ansible's task output.
 
@@ -1089,7 +1337,7 @@ ssh -T git@github.com
 
 ---
 
-# 20. Key Concepts Demonstrated
+# 21. Key Concepts Demonstrated
 
 This project provided hands-on experience with:
 
@@ -1163,15 +1411,14 @@ This project provided hands-on experience with:
 
 ---
 
-# 21. Screenshots
+# 22. Screenshots
 
 The following screenshots document important stages of the implementation.
 
-Recommended screenshots:
-
 ### Ansible Connectivity
 
-<!-- ADD SCREENSHOT -->
+<img width="578" height="308" alt="Screenshot 2026-09-15 213147" src="https://github.com/user-attachments/assets/2c37e252-0400-443a-912b-ec8db92bd105" />
+
 
 ```text
 ansible servers -m ping
@@ -1179,7 +1426,8 @@ ansible servers -m ping
 
 ### SSH Hardening
 
-<!-- ADD SCREENSHOT -->
+<img width="951" height="208" alt="image" src="https://github.com/user-attachments/assets/4ae22c64-3543-4771-b4a2-cdfa9d347246" />
+
 
 ```text
 sshd -T
@@ -1195,13 +1443,11 @@ pubkeyauthentication yes
 
 ### Firewalld
 
-<!-- ADD SCREENSHOT -->
+<img width="929" height="619" alt="Screenshot 2026-09-17 122749" src="https://github.com/user-attachments/assets/fe7ca1ca-10cb-4dab-b823-80e02fbf8598" />
+
 
 Show HTTP/SSH services configured in the active firewall zone.
 
-### Apache
-
-<!-- ADD SCREENSHOT -->
 
 Show:
 
@@ -1250,7 +1496,8 @@ apache-container
 
 ### Containerized Apache
 
-<!-- ADD SCREENSHOT -->
+<img width="805" height="390" alt="Screenshot 2026-09-15 203940" src="https://github.com/user-attachments/assets/687ee0ec-54c5-42da-bf97-339c102dbb6b" />
+
 
 Show:
 
