@@ -1,0 +1,15 @@
+---
+# tasks file for roles/base_setup
+
+- name: Installing required packages
+  ansible.builtin.dnf:
+    name: [vim,git,curl,wget,net-tools]
+    state: present
+
+- name: Start and Enable chronyd
+  ansible.builtin.systemd_service:
+    name: chronyd
+    state: started
+    enabled: true
+    
+    

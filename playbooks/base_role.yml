@@ -1,0 +1,7 @@
+- name: Basic Role Setup
+  become: true
+  hosts: servers
+  
+  roles:
+    - base_setup
+
